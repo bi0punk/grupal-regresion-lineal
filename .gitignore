@@ -25,3 +25,4 @@ Thumbs.db
 
 # Dataset climatico (13MB, no se commitea; ver README para obtenerlo)
 historia_climatica.csv
+*.csv
