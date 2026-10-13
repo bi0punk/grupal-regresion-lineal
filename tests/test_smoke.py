@@ -1,35 +1,31 @@
-"""Smoke tests para el notebook académico de regresión lineal.
+"""Smoke tests para el script académico de regresión lineal.
 
-Validan estructura del notebook sin ejecutarlo (pesa ~1.6MB con outputs).
+Validan estructura del repositorio y que el script sea sintácticamente
+válido sin ejecutarlo (requiere dataset de 13MB y dependencias pesadas).
 """
 
 from __future__ import annotations
 
-import json
-import subprocess
+import ast
+import subprocess  # nosec B404
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-NOTEBOOK = REPO_ROOT / "DESARROLLO_Trabajo_Grupal_2025_v2.ipynb"
+SCRIPT = REPO_ROOT / "regression_analyzer.py"
 
 
-def test_notebook_is_valid_json():
-    assert NOTEBOOK.exists(), "Notebook no encontrado"
-    data = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
-    assert "cells" in data
-    assert len(data["cells"]) > 0
+def test_script_exists():
+    assert SCRIPT.exists(), "regression_analyzer.py no encontrado"
 
 
-def test_notebook_has_code_and_markdown_cells():
-    data = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
-    kinds = {cell.get("cell_type") for cell in data["cells"]}
-    assert "code" in kinds
-    assert "markdown" in kinds
+def test_script_is_valid_python():
+    ast.parse(SCRIPT.read_text(encoding="utf-8"))
+    assert SCRIPT.stat().st_size > 0
 
 
 def test_dataset_not_tracked():
     """El CSV de 13MB no debe commitearse."""
-    tracked = subprocess.run(
+    tracked = subprocess.run(  # nosec B603, B607
         ["git", "ls-files"], cwd=REPO_ROOT, capture_output=True, text=True, check=True
     ).stdout
     assert "historia_climatica.csv" not in tracked, "El dataset CSV está commiteado"
