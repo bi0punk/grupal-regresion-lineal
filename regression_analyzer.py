@@ -1,32 +1,31 @@
 # Librerías para manipulación de datos
+# Visualización
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 # Modelos de regresión permitidos
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, SGDRegressor
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, Ridge
+
+# Métricas de evaluación
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # Herramientas de preprocesamiento y división de datos
 from sklearn.model_selection import train_test_split
-from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, PolynomialFeatures
-
-# Métricas de evaluación
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, mean_absolute_percentage_error
-
-# Visualización
-import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeRegressor
 
 # Configuración de visualización
-plt.style.use('seaborn-v0_8-whitegrid')
-pd.set_option('display.max_columns', None)
+plt.style.use("seaborn-v0_8-whitegrid")
+pd.set_option("display.max_columns", None)
 
 # Ignorar advertencias para mejor legibilidad
 import warnings
-warnings.filterwarnings('ignore')
 
-df = pd.read_csv('historia_climatica.csv')
+warnings.filterwarnings("ignore")
+
+df = pd.read_csv("historia_climatica.csv")
 print(f"Dimensiones del dataset: {df.shape[0]} filas × {df.shape[1]} columnas")
 df.head()
 
@@ -36,18 +35,17 @@ print(df.dtypes)
 print(df.describe().T)
 
 
-#FALTANTES
-cat_cols = df.select_dtypes(include=['object']).columns
+# FALTANTES
+cat_cols = df.select_dtypes(include=["object"]).columns
 
 for col in cat_cols:
     print(f"\nColumna: {col}")
     print(df[col].unique())
 
 
-#Extra
-plt.figure(figsize=(10,6))
-sns.heatmap(df.select_dtypes(include=np.number).corr(),
-            annot=True, cmap="coolwarm", fmt=".2f")
+# Extra
+plt.figure(figsize=(10, 6))
+sns.heatmap(df.select_dtypes(include=np.number).corr(), annot=True, cmap="coolwarm", fmt=".2f")
 plt.title("Mapa de Correlación entre Variables Numéricas")
 plt.show()
 
@@ -58,24 +56,23 @@ df.isna().sum()
 print(df.isna().sum())
 
 print("\n")
-#porcentaje
+# porcentaje
 # Identificación de valores faltantes por columna
 df.isna().sum()
-print((df.isna().mean()*100).round(2))
+print((df.isna().mean() * 100).round(2))
 
-#visualizacion de datos faltantes
-plt.figure(figsize=(10,4))
+# visualizacion de datos faltantes
+plt.figure(figsize=(10, 4))
 sns.heatmap(df.isna(), cbar=False, cmap="Reds")
 plt.title("Mapa de Valores Faltantes en el Dataset")
 plt.show()
 
 
 # Su código aquí - Estrategia de imputación
-from sklearn.impute import KNNImputer
 
 # Separar columnas numéricas y categóricas
-num_cols = df.select_dtypes(include=['float64','int64']).columns
-cat_cols = df.select_dtypes(include=['object']).columns
+num_cols = df.select_dtypes(include=["float64", "int64"]).columns
+cat_cols = df.select_dtypes(include=["object"]).columns
 
 # Copias para no modificar el original
 df_imputed = df.copy()
@@ -96,7 +93,7 @@ df_imputed.isna().sum()
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-num_cols = df_imputed.select_dtypes(include=['float64', 'int64']).columns
+num_cols = df_imputed.select_dtypes(include=["float64", "int64"]).columns
 
 # Histogramas
 df_imputed[num_cols].hist(figsize=(12, 8), bins=20)
@@ -121,18 +118,17 @@ for col in num_cols:
     IQR = Q3 - Q1
     lower = Q1 - 1.5 * IQR
     upper = Q3 + 1.5 * IQR
-    
+
     n_outliers = ((df_imputed[col] < lower) | (df_imputed[col] > upper)).sum()
     outlier_info.append([col, lower, upper, n_outliers])
 
-outliers_df = pd.DataFrame(outlier_info,
-                           columns=['variable', 'lim_inf', 'lim_sup', 'n_outliers'])
+outliers_df = pd.DataFrame(outlier_info, columns=["variable", "lim_inf", "lim_sup", "n_outliers"])
 
-outliers_df
+print(outliers_df)
 
 
 # Su código aquí - Tratamiento de outliers
-#Aquí no eliminamos filas, sino que “recortamos” los valores extremos al límite permitido por la regla del IQR
+# Aquí no eliminamos filas, sino que “recortamos” los valores extremos al límite permitido por la regla del IQR
 # Tratamiento de outliers: clipping a los límites [Q1 - 1.5*IQR, Q3 + 1.5*IQR]
 df_clean = df_imputed.copy()
 
@@ -142,16 +138,16 @@ for col in num_cols:
     IQR = Q3 - Q1
     lower = Q1 - 1.5 * IQR
     upper = Q3 + 1.5 * IQR
-    
+
     df_clean[col] = df_clean[col].clip(lower=lower, upper=upper)
 
 # Comprobación rápida
-df_clean.describe().T
+print(df_clean.describe().T)
 
 
-#outliers por variable
+# outliers por variable
 plt.figure(figsize=(8, 4))
-sns.barplot(data=outliers_df, x='variable', y='n_outliers')
+sns.barplot(data=outliers_df, x="variable", y="n_outliers")
 plt.xticks(rotation=45)
 plt.title("Número de outliers por variable numérica")
 plt.ylabel("Cantidad de outliers")
@@ -162,7 +158,7 @@ plt.show()
 # Análisis de variables categóricas
 # --------------------------------
 # Identificamos las columnas categóricas del dataset
-cat_cols = df_clean.select_dtypes(include='object').columns
+cat_cols = df_clean.select_dtypes(include="object").columns
 print(cat_cols)
 
 # Mostrar el número de categorías por variable categórica
@@ -176,16 +172,16 @@ for col in cat_cols:
 # --------------------------------
 # Convertimos variables categóricas a variables dummy (0/1)
 # drop_first=True evita la multicolinealidad (mantiene k-1 columnas)
-#quitamos coñumna daily summary porque se hace pesado y se romope, aparte no aporta muchoo
+# quitamos coñumna daily summary porque se hace pesado y se romope, aparte no aporta muchoo
 # ==============================
 # 1) Aseguramos tipo datetime para Fecha
 # ==============================
-df_clean['Fecha'] = pd.to_datetime(df_clean['Fecha'], errors='coerce')
+df_clean["Fecha"] = pd.to_datetime(df_clean["Fecha"], errors="coerce")
 # ==============================
 # 2) Identificar variables categóricas
 #    (ya NO incluye 'Fecha' porque ahora es datetime)
 # ==============================
-cat_cols = df_clean.select_dtypes(include=['object']).columns.tolist()
+cat_cols = df_clean.select_dtypes(include=["object"]).columns.tolist()
 print("Categóricas originales:", cat_cols)
 
 # ==============================
@@ -202,11 +198,7 @@ print("Categóricas que codificaremos:", cat_cols)
 # 4) One-Hot Encoding sobre Summary y Precip Type
 #    drop_first=True evita multicolinealidad
 # ==============================
-df_encoded = pd.get_dummies(
-    df_clean,
-    columns=cat_cols,
-    drop_first=True
-)
+df_encoded = pd.get_dummies(df_clean, columns=cat_cols, drop_first=True)
 
 df_encoded.head()
 
@@ -215,14 +207,14 @@ df_encoded.head()
 # Extracción de atributos temporales
 # ----------------------------------
 # Aseguramos que 'Fecha' sea tipo datetime
-df_encoded['Fecha'] = pd.to_datetime(df_encoded['Fecha'], errors='coerce')
+df_encoded["Fecha"] = pd.to_datetime(df_encoded["Fecha"], errors="coerce")
 
 # Creación de nuevas columnas temporales
-df_encoded['año'] = df_encoded['Fecha'].dt.year      # Año de la medición
-df_encoded['mes'] = df_encoded['Fecha'].dt.month     # Mes (estacionalidad)
-df_encoded['dia'] = df_encoded['Fecha'].dt.day       # Día del mes
-df_encoded['hora'] = df_encoded['Fecha'].dt.hour     # Hora del día (ciclos diurnos)
-df_encoded['dia_semana'] = df_encoded['Fecha'].dt.dayofweek  # 0 = Lunes ... 6 = Domingo
+df_encoded["año"] = df_encoded["Fecha"].dt.year  # Año de la medición
+df_encoded["mes"] = df_encoded["Fecha"].dt.month  # Mes (estacionalidad)
+df_encoded["dia"] = df_encoded["Fecha"].dt.day  # Día del mes
+df_encoded["hora"] = df_encoded["Fecha"].dt.hour  # Hora del día (ciclos diurnos)
+df_encoded["dia_semana"] = df_encoded["Fecha"].dt.dayofweek  # 0 = Lunes ... 6 = Domingo
 
 df_encoded.head()
 # Eliminar definitivamente Daily Summary del dataset modelo
@@ -233,17 +225,16 @@ else:
     print("Daily Summary ya no está en df_encoded")
 
 
-
 # Su código aquí - Análisis de correlación y selección de variables
 # ==========================================
 # 4.3 Selección final de variables predictoras
 # ==========================================
 
 # 1) Definimos el nombre de la variable objetivo
-target_col = 'Temperature (C)'
+target_col = "Temperature (C)"
 
 # 2) Obtenemos solo las columnas numéricas para el análisis de correlación
-num_cols = df_encoded.select_dtypes(include=['float64', 'int64']).columns
+num_cols = df_encoded.select_dtypes(include=["float64", "int64"]).columns
 
 # 3) Calculamos la matriz de correlación entre variables numéricas
 corr_matrix = df_encoded[num_cols].corr()
@@ -261,11 +252,13 @@ print(corr_with_target)
 #    - Excluimos 'Fecha' porque ya extrajimos atributos temporales
 #    - (Opcional) Excluimos variables con varianza cero como 'Loud Cover'
 
-feature_cols = df_encoded.columns.drop([
-    'Temperature (C)',  # variable objetivo
-    'Fecha',            # variable temporal original
-    'Loud Cover'        # sin variación (siempre 0), no aporta información
-])
+feature_cols = df_encoded.columns.drop(
+    [
+        "Temperature (C)",  # variable objetivo
+        "Fecha",  # variable temporal original
+        "Loud Cover",  # sin variación (siempre 0), no aporta información
+    ]
+)
 
 # 7) Creamos el dataset final que se usará para modelar
 df_model = df_encoded[feature_cols.union([target_col])]
@@ -294,14 +287,11 @@ print("Dimensiones de y:", y.shape)
 # 5.2 División en conjuntos de entrenamiento y prueba
 # ==========================================
 
-from sklearn.model_selection import train_test_split
 
 # Dividimos los datos en train y test
 # test_size=0.2 -> 20% de los datos se reserva para prueba
 # random_state fija la aleatoriedad para obtener siempre la misma partición
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 print("Tamaño X_train:", X_train.shape)
 print("Tamaño X_test:", X_test.shape)
@@ -309,7 +299,7 @@ print("Tamaño y_train:", y_train.shape)
 print("Tamaño y_test:", y_test.shape)
 # Comprobamos si X_train tiene columnas de texto (object)
 print("Columnas tipo object en X_train:")
-print(X_train.select_dtypes(include='object').columns.tolist())
+print(X_train.select_dtypes(include="object").columns.tolist())
 
 
 # Su código aquí - Estandarización/Normalización
@@ -317,7 +307,6 @@ print(X_train.select_dtypes(include='object').columns.tolist())
 # 5.3 Estandarización / Normalización de variables
 # ==========================================
 
-from sklearn.preprocessing import StandardScaler
 
 # Creamos el objeto escalador
 scaler = StandardScaler()
@@ -336,7 +325,7 @@ X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test
 X_train_scaled.head()
 # Comprobamos si X_train tiene columnas de texto (object)
 print("Columnas tipo object en X_train:")
-print(X_train.select_dtypes(include='object').columns.tolist())
+print(X_train.select_dtypes(include="object").columns.tolist())
 
 
 # ==========================================
@@ -367,7 +356,6 @@ print("Plantilla guardada como 'plantilla_input_modelo.json'")
 # Modelo base: LinearRegression
 # ==========================================
 
-from sklearn.linear_model import LinearRegression
 
 # Creamos el modelo lineal
 # Lo usamos como baseline porque:
@@ -382,9 +370,6 @@ lin_model.fit(X_train_scaled, y_train)
 print("Modelo LinearRegression entrenado correctamente.")
 
 
-
-from sklearn.linear_model import Ridge
-
 ridge_model = Ridge(alpha=1.0)
 ridge_model.fit(X_train_scaled, y_train)
 pred_ridge = ridge_model.predict(X_test_scaled)
@@ -392,14 +377,11 @@ pred_ridge = ridge_model.predict(X_test_scaled)
 
 print("Modelo Ridge Regression entrenado correctamente")
 
-from sklearn.linear_model import Lasso
 
 lasso_model = Lasso(alpha=0.001)
 lasso_model.fit(X_train_scaled, y_train)
 pred_lasso = lasso_model.predict(X_test_scaled)
 
-
-from sklearn.linear_model import ElasticNet
 
 elastic_model = ElasticNet(alpha=0.001, l1_ratio=0.5)
 elastic_model.fit(X_train_scaled, y_train)
@@ -411,17 +393,13 @@ pred_elastic = elastic_model.predict(X_test_scaled)
 # Modelo no lineal: DecisionTreeRegressor
 # ==========================================
 
-from sklearn.tree import DecisionTreeRegressor
 
 # Creamos el árbol de decisión
 # Lo usamos como comparación porque:
 # - Puede capturar relaciones no lineales.
 # - Considera interacciones entre variables (por ejemplo, humedad + hora).
 # max_depth se fija para evitar sobreajuste (controla la complejidad del árbol).
-tree_model = DecisionTreeRegressor(
-    max_depth=10,
-    random_state=42
-)
+tree_model = DecisionTreeRegressor(max_depth=10, random_state=42)
 
 # Entrenamos el árbol con los mismos datos escalados de entrenamiento
 tree_model.fit(X_train_scaled, y_train)
@@ -434,54 +412,43 @@ print("Modelo DecisionTreeRegressor entrenado correctamente.")
 # Predicciones y métricas para varios modelos
 # ==========================================
 
-from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 import numpy as np
 import pandas as pd
 
 # ------------------------------
 # 1) Predicciones en el conjunto de prueba
 # ------------------------------
-y_pred_lin    = lin_model.predict(X_test_scaled)       # modelo lineal básico
-y_pred_ridge  = ridge_model.predict(X_test_scaled)     # Ridge
-y_pred_lasso  = lasso_model.predict(X_test_scaled)     # Lasso
+y_pred_lin = lin_model.predict(X_test_scaled)  # modelo lineal básico
+y_pred_ridge = ridge_model.predict(X_test_scaled)  # Ridge
+y_pred_lasso = lasso_model.predict(X_test_scaled)  # Lasso
 y_pred_elastic = elastic_model.predict(X_test_scaled)  # ElasticNet
-y_pred_tree   = tree_model.predict(X_test_scaled)      # árbol de decisión
+y_pred_tree = tree_model.predict(X_test_scaled)  # árbol de decisión
+
 
 # ------------------------------
 # 2) Función para calcular métricas
 #    Métricas: MAE, R² y RMSE
 # ------------------------------
 def compute_metrics(y_true, y_pred, model_name):
-    mae  = mean_absolute_error(y_true, y_pred)
-    r2   = r2_score(y_true, y_pred)
+    mae = mean_absolute_error(y_true, y_pred)
+    r2 = r2_score(y_true, y_pred)
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    return {
-        'Modelo': model_name,
-        'MAE (°C)': mae,
-        'R²': r2,
-        'RMSE (°C)': rmse
-    }
+    return {"Modelo": model_name, "MAE (°C)": mae, "R²": r2, "RMSE (°C)": rmse}
+
 
 # Calculamos métricas para cada modelo
-metrics_lin     = compute_metrics(y_test, y_pred_lin,     'LinearRegression')
-metrics_ridge   = compute_metrics(y_test, y_pred_ridge,   'Ridge')
-metrics_lasso   = compute_metrics(y_test, y_pred_lasso,   'Lasso')
-metrics_elastic = compute_metrics(y_test, y_pred_elastic, 'ElasticNet')
-metrics_tree    = compute_metrics(y_test, y_pred_tree,    'DecisionTreeRegressor')
+metrics_lin = compute_metrics(y_test, y_pred_lin, "LinearRegression")
+metrics_ridge = compute_metrics(y_test, y_pred_ridge, "Ridge")
+metrics_lasso = compute_metrics(y_test, y_pred_lasso, "Lasso")
+metrics_elastic = compute_metrics(y_test, y_pred_elastic, "ElasticNet")
+metrics_tree = compute_metrics(y_test, y_pred_tree, "DecisionTreeRegressor")
 
 # ------------------------------
 # 3) Tabla comparativa de métricas
 # ------------------------------
-results_df = pd.DataFrame([
-    metrics_lin,
-    metrics_ridge,
-    metrics_lasso,
-    metrics_elastic,
-    metrics_tree
-])
+results_df = pd.DataFrame([metrics_lin, metrics_ridge, metrics_lasso, metrics_elastic, metrics_tree])
 
-results_df
-
+print(results_df)
 
 
 # Su código aquí - Visualizaciones
@@ -496,12 +463,10 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(7, 7))
 
 # Dibujamos los puntos reales vs predichos
-plt.scatter(y_test, y_pred_lin, alpha=0.3, color='blue', label='Predicciones')
+plt.scatter(y_test, y_pred_lin, alpha=0.3, color="blue", label="Predicciones")
 
 # Línea de referencia (donde real = predicho)
-plt.plot([y_test.min(), y_test.max()],
-         [y_test.min(), y_test.max()],
-         'r--', linewidth=2, label='Línea ideal')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "r--", linewidth=2, label="Línea ideal")
 
 plt.xlabel("Temperatura real (°C)")
 plt.ylabel("Temperatura predicha (°C)")
@@ -510,7 +475,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 ##Si los puntos siguen de cerca la línea roja, el modelo predice correctamente.
-#Dispersión grande = modelo con errores altos
+# Dispersión grande = modelo con errores altos
 
 
 # ==========================================
@@ -526,20 +491,19 @@ model_predictions = {
     "Ridge": y_pred_ridge,
     "Lasso": y_pred_lasso,
     "ElasticNet": y_pred_elastic,
-    "DecisionTreeRegressor": y_pred_tree
+    "DecisionTreeRegressor": y_pred_tree,
 }
+
 
 # Función para graficar cada modelo
 def plot_real_vs_pred(y_true, y_pred, model_name):
     plt.figure(figsize=(7, 7))
 
     # Dispersión real vs predicho
-    plt.scatter(y_true, y_pred, alpha=0.3, color='blue', label='Predicciones')
+    plt.scatter(y_true, y_pred, alpha=0.3, color="blue", label="Predicciones")
 
     # Línea ideal donde real = predicho
-    plt.plot([y_true.min(), y_true.max()],
-             [y_true.min(), y_true.max()],
-             'r--', linewidth=2, label='Línea ideal')
+    plt.plot([y_true.min(), y_true.max()], [y_true.min(), y_true.max()], "r--", linewidth=2, label="Línea ideal")
 
     plt.xlabel("Temperatura real (°C)")
     plt.ylabel("Temperatura predicha (°C)")
@@ -548,6 +512,7 @@ def plot_real_vs_pred(y_true, y_pred, model_name):
     plt.grid(True)
     plt.show()
 
+
 # Generar un gráfico por modelo
 for model_name, y_pred in model_predictions.items():
     plot_real_vs_pred(y_test, y_pred, model_name)
@@ -555,12 +520,10 @@ for model_name, y_pred in model_predictions.items():
 
 plt.figure(figsize=(8, 8))
 
-plt.scatter(y_test, y_pred_lin, alpha=0.3, label='LinearRegression', color='blue')
-plt.scatter(y_test, y_pred_tree, alpha=0.3, label='DecisionTreeRegressor', color='green')
+plt.scatter(y_test, y_pred_lin, alpha=0.3, label="LinearRegression", color="blue")
+plt.scatter(y_test, y_pred_tree, alpha=0.3, label="DecisionTreeRegressor", color="green")
 
-plt.plot([y_test.min(), y_test.max()],
-         [y_test.min(), y_test.max()],
-         'r--', linewidth=2, label='Línea ideal')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "r--", linewidth=2, label="Línea ideal")
 
 plt.xlabel("Temperatura real (°C)")
 plt.ylabel("Temperatura predicha (°C)")
@@ -578,15 +541,15 @@ plt.show()
 residuals = y_test - y_pred_lin
 
 plt.figure(figsize=(8, 5))
-sns.histplot(residuals, kde=True, bins=40, color='purple')
+sns.histplot(residuals, kde=True, bins=40, color="purple")
 
 plt.title("Distribución de residuos del modelo LinearRegression")
 plt.xlabel("Residuo (°C)")
 plt.ylabel("Frecuencia")
 plt.grid(True)
 plt.show()
-#Los residuos deberían aproximarse a una distribución normal centrada en 0.
-#Si hay asimetría o colas largas, el modelo tiene sesgo o errores altos en ciertos rangos.
+# Los residuos deberían aproximarse a una distribución normal centrada en 0.
+# Si hay asimetría o colas largas, el modelo tiene sesgo o errores altos en ciertos rangos.
 
 
 # ==========================================
@@ -599,10 +562,9 @@ import numpy as np
 importances = tree_model.feature_importances_
 
 # Las asociamos a los nombres de columnas
-importance_df = pd.DataFrame({
-    'Variable': X_train.columns,
-    'Importancia': importances
-}).sort_values(by='Importancia', ascending=False)
+importance_df = pd.DataFrame({"Variable": X_train.columns, "Importancia": importances}).sort_values(
+    by="Importancia", ascending=False
+)
 
 # Mostramos las primeras más importantes
 importance_df.head(15)
@@ -610,8 +572,7 @@ importance_df.head(15)
 
 # Visualización
 plt.figure(figsize=(8, 8))
-sns.barplot(data=importance_df.head(15),
-            x='Importancia', y='Variable', palette='viridis')
+sns.barplot(data=importance_df.head(15), x="Importancia", y="Variable", palette="viridis")
 plt.title("Importancia de las 15 variables más relevantes (Árbol de decisión)")
 plt.xlabel("Importancia")
 plt.ylabel("Variable")
@@ -631,5 +592,3 @@ joblib.dump(lin_model, "modelo_temperatura.pkl")
 joblib.dump(scaler, "scaler_temperatura.pkl")
 
 print("Modelo y scaler guardados correctamente.")
-
-
